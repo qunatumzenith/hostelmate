@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "497782311944",
+    "project_id": "hostelmate-f",
+    "storage_bucket": "hostelmate-f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:497782311944:android:44a2ec34f510177ad595bd",
+        "android_client_info": {
+          "package_name": "com.sasank.hostelmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "497782311944-33on53lk0k7qj8vuidraa1o92vgn8php.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sasank.hostelmate",
+            "certificate_hash": "d3e76263f1d350e12904dbc259b40b0e4aa53b32"
+          }
+        },
+        {
+          "client_id": "497782311944-kua1oe9fqja6s77g5rqr82ps8k9a7vot.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCreMmIrZ6pCYQvF-OQC00HLvMs757iBwQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "497782311944-kua1oe9fqja6s77g5rqr82ps8k9a7vot.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "497782311944-s0ukeph30681d9e8637oe4gbajpm19bg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hostelmate"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
