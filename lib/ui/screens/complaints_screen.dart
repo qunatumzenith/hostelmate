@@ -4,59 +4,150 @@ import 'package:hostelmate/core/models/complaint_model.dart';
 import 'package:provider/provider.dart';
 import 'package:hostelmate/core/services/auth_service.dart';
 
-class ComplaintsScreen extends StatelessWidget {
-  const ComplaintsScreen({super.key});
+class ComplaintsScreen extends StatefulWidget {
+  const ComplaintsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ComplaintsScreen> createState() => _ComplaintsScreenState();
+}
+
+class _ComplaintsScreenState extends State<ComplaintsScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  String _selectedCategory = 'maintenance';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Complaints'),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/complaints.jpg'),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.3),
+                BlendMode.darken,
+              ),
+            ),
+          ),
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('complaints')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final complaints = snapshot.data!.docs
-              .map((doc) => ComplaintModel.fromMap(
-                  doc.data() as Map<String, dynamic>..['id'] = doc.id))
-              .toList();
-
-          if (complaints.isEmpty) {
-            return const Center(child: Text('No complaints yet'));
-          }
-
-          return ListView.builder(
-            itemCount: complaints.length,
-            itemBuilder: (context, index) {
-              final complaint = complaints[index];
-              return ComplaintCard(complaint: complaint);
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddComplaintDialog(context),
-        child: const Icon(Icons.add),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/complaints.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.1,
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Complaint Title',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['maintenance', 'cleanliness', 'security', 'other']
+                    .map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _submitComplaint,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Submit Complaint'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _showAddComplaintDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const AddComplaintDialog(),
-    );
+  Future<void> _submitComplaint() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      final currentUser = context.read<AuthService>().currentUser;
+      if (currentUser == null) return;
+
+      await FirebaseFirestore.instance.collection('complaints').add({
+        'userId': currentUser.uid,
+        'title': _titleController.text,
+        'category': _selectedCategory,
+        'description': _descriptionController.text,
+        'status': 'pending',
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Complaint submitted successfully')),
+      );
+
+      _titleController.clear();
+      _descriptionController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 }
 
@@ -69,20 +160,73 @@ class ComplaintCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        title: Text(complaint.title),
-        subtitle: Text('Category: ${complaint.category}'),
-        trailing: _getStatusChip(complaint.status),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ComplaintChatScreen(complaint: complaint),
-            ),
-          );
-        },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          image: DecorationImage(
+            image: AssetImage(_getCategoryImage(complaint.category)),
+            fit: BoxFit.cover,
+            opacity: 0.1,
+          ),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(16),
+          title: Text(
+            complaint.title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    _getCategoryIcon(complaint.category),
+                    size: 16,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(complaint.category.toUpperCase()),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _getStatusChip(complaint.status),
+            ],
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.arrow_forward_ios),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ComplaintChatScreen(complaint: complaint),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
+  }
+
+  String _getCategoryImage(String category) {
+    return 'assets/complaints.jpg';
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'maintenance':
+        return Icons.build;
+      case 'cleanliness':
+        return Icons.cleaning_services;
+      case 'security':
+        return Icons.security;
+      default:
+        return Icons.help_outline;
+    }
   }
 
   Widget _getStatusChip(ComplaintStatus status) {
@@ -412,7 +556,6 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
       final currentUser = context.read<AuthService>().currentUser;
       if (currentUser == null) return;
 
-      // Create the complaint
       final complaintRef = await FirebaseFirestore.instance.collection('complaints').add({
         'userId': currentUser.uid,
         'title': _titleController.text,
@@ -421,16 +564,11 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      print('Created complaint with ID: ${complaintRef.id}');
-
-      // Add the first message
-      final messageRef = await complaintRef.collection('messages').add({
+      await complaintRef.collection('messages').add({
         'senderId': currentUser.uid,
         'message': _messageController.text,
         'timestamp': DateTime.now().toIso8601String(),
       });
-
-      print('Added first message with ID: ${messageRef.id}');
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Complaint submitted successfully')),
@@ -438,10 +576,16 @@ class _AddComplaintDialogState extends State<AddComplaintDialog> {
 
       Navigator.pop(context);
     } catch (e) {
-      print('Error submitting complaint: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     }
   }
-} 
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+}

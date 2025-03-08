@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hostelmate/app.dart';
+import 'package:provider/provider.dart';
+import 'package:hostelmate/core/services/auth_service.dart';
+import 'package:hostelmate/core/services/medical_service.dart';
+import 'package:hostelmate/core/services/food_service.dart';
+import 'package:hostelmate/core/services/room_service.dart';
+import 'package:hostelmate/ui/screens/login_screen.dart';
+import 'package:hostelmate/ui/screens/home_screen.dart';
+import 'package:hostelmate/ui/screens/medical_assistance_screen.dart';
+import 'package:hostelmate/ui/screens/food_services_screen.dart';
+import 'package:hostelmate/ui/screens/room_allocation_screen.dart';
+import 'package:hostelmate/ui/screens/complaints_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -9,6 +19,46 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const HostelMateApp());
+}
+
+class HostelMateApp extends StatelessWidget {
+  const HostelMateApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => MedicalService()),
+        ChangeNotifierProvider(create: (_) => FoodService()),
+        ChangeNotifierProvider(create: (_) => RoomService()),
+      ],
+      child: MaterialApp(
+        title: 'HostelMate',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+        ),
+        home: StreamBuilder(
+          stream: AuthService().authStateChanges,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return const HomeScreen();
+            }
+            return const LoginScreen();
+          },
+        ),
+        routes: {
+          '/home': (context) => const HomeScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/medical-assistance': (context) => const MedicalAssistanceScreen(),
+          '/food-services': (context) => const FoodServicesScreen(),
+          '/room-allocation': (context) => const RoomAllocationScreen(),
+          '/complaints': (context) => const ComplaintsScreen(),
+        },
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

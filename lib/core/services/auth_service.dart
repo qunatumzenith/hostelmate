@@ -32,37 +32,33 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) return null;
-
-      if (!googleUser.email.endsWith('@klu.ac.in')) {
-        await _googleSignIn.signOut();
-        throw FirebaseAuthException(
-          code: 'invalid-email-domain',
-          message: 'Please use your KLU email address (@klu.ac.in)',
-        );
-      }
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
       );
 
       return await _auth.signInWithCredential(credential);
     } catch (e) {
+      debugPrint('Error signing in with Google: $e');
       rethrow;
     }
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _auth.signOut();
+    try {
+      await Future.wait([
+        _auth.signOut(),
+        _googleSignIn.signOut(),
+      ]);
+    } catch (e) {
+      debugPrint('Error signing out: $e');
+      rethrow;
+    }
   }
 
   Future<UserCredential> registerWithEmailAndPassword({

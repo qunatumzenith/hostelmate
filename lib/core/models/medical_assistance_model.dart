@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 enum HealthIssueType {
   fever,
-  headache,
-  stomachache,
   injury,
+  allergy,
   other
 }
 

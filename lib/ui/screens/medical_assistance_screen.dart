@@ -3,28 +3,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:hostelmate/core/services/auth_service.dart';
 
-class RoomAllocationScreen extends StatefulWidget {
-  const RoomAllocationScreen({Key? key}) : super(key: key);
+class MedicalAssistanceScreen extends StatefulWidget {
+  const MedicalAssistanceScreen({Key? key}) : super(key: key);
 
   @override
-  State<RoomAllocationScreen> createState() => _RoomAllocationScreenState();
+  State<MedicalAssistanceScreen> createState() => _MedicalAssistanceScreenState();
 }
 
-class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
+class _MedicalAssistanceScreenState extends State<MedicalAssistanceScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _roomNumberController = TextEditingController();
-  String _selectedHostelType = 'boys';
-  String _selectedRoomType = 'single';
+  final _descriptionController = TextEditingController();
+  String _selectedIssueType = 'fever';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Room Allocation'),
+        title: const Text('Medical Assistance'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/room.jpg'),
+              image: AssetImage('assets/medical.jpg'),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
                 Colors.black.withOpacity(0.3),
@@ -37,7 +36,7 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/room.jpg'),
+            image: AssetImage('assets/medical.jpg'),
             fit: BoxFit.cover,
             opacity: 0.1,
           ),
@@ -49,12 +48,12 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedHostelType,
+                value: _selectedIssueType,
                 decoration: const InputDecoration(
-                  labelText: 'Hostel Type',
+                  labelText: 'Health Issue Type',
                   border: OutlineInputBorder(),
                 ),
-                items: ['boys', 'girls']
+                items: ['fever', 'injury', 'allergy', 'other']
                     .map((type) {
                   return DropdownMenuItem(
                     value: type,
@@ -63,37 +62,24 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedHostelType = value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedRoomType,
-                decoration: const InputDecoration(
-                  labelText: 'Room Type',
-                  border: OutlineInputBorder(),
-                ),
-                items: ['single', 'double', 'triple']
-                    .map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.toUpperCase()),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRoomType = value!;
+                    _selectedIssueType = value!;
                   });
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _roomNumberController,
+                controller: _descriptionController,
+                maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: 'Preferred Room Number (Optional)',
+                  labelText: 'Description',
                   border: OutlineInputBorder(),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -117,11 +103,10 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
       final currentUser = context.read<AuthService>().currentUser;
       if (currentUser == null) return;
 
-      await FirebaseFirestore.instance.collection('room_requests').add({
+      await FirebaseFirestore.instance.collection('medical_requests').add({
         'userId': currentUser.uid,
-        'hostelType': _selectedHostelType,
-        'roomType': _selectedRoomType,
-        'preferredRoomNumber': _roomNumberController.text,
+        'issueType': _selectedIssueType,
+        'description': _descriptionController.text,
         'status': 'pending',
         'timestamp': DateTime.now().toIso8601String(),
       });
@@ -129,10 +114,10 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Room request submitted successfully')),
+        const SnackBar(content: Text('Medical request submitted successfully')),
       );
 
-      _roomNumberController.clear();
+      _descriptionController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -142,7 +127,7 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
 
   @override
   void dispose() {
-    _roomNumberController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 } 

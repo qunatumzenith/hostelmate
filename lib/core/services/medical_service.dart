@@ -8,7 +8,7 @@ class MedicalService extends ChangeNotifier {
   Future<void> requestAssistance(MedicalAssistance request) async {
     try {
       await _firestore
-          .collection('medical_assistance')
+          .collection('medical_requests')
           .doc(request.id)
           .set(request.toMap());
     } catch (e) {

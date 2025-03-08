@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:hostelmate/core/services/auth_service.dart';
+import '../../core/services/food_service.dart';
+import '../../core/models/food_system_model.dart';
+import '../../core/services/auth_service.dart';
 
-class RoomAllocationScreen extends StatefulWidget {
-  const RoomAllocationScreen({Key? key}) : super(key: key);
+class FoodServicesScreen extends StatefulWidget {
+  const FoodServicesScreen({Key? key}) : super(key: key);
 
   @override
-  State<RoomAllocationScreen> createState() => _RoomAllocationScreenState();
+  State<FoodServicesScreen> createState() => _FoodServicesScreenState();
 }
 
-class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
+class _FoodServicesScreenState extends State<FoodServicesScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _roomNumberController = TextEditingController();
-  String _selectedHostelType = 'boys';
-  String _selectedRoomType = 'single';
+  final _requestController = TextEditingController();
+  String _selectedMealType = 'breakfast';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Room Allocation'),
+        title: const Text('Food Services'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/room.jpg'),
+              image: AssetImage('assets/food.jpg'),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
                 Colors.black.withOpacity(0.3),
@@ -37,7 +38,7 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/room.jpg'),
+            image: AssetImage('assets/food.jpg'),
             fit: BoxFit.cover,
             opacity: 0.1,
           ),
@@ -49,12 +50,12 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedHostelType,
+                value: _selectedMealType,
                 decoration: const InputDecoration(
-                  labelText: 'Hostel Type',
+                  labelText: 'Meal Type',
                   border: OutlineInputBorder(),
                 ),
-                items: ['boys', 'girls']
+                items: ['breakfast', 'lunch', 'dinner']
                     .map((type) {
                   return DropdownMenuItem(
                     value: type,
@@ -63,37 +64,25 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedHostelType = value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedRoomType,
-                decoration: const InputDecoration(
-                  labelText: 'Room Type',
-                  border: OutlineInputBorder(),
-                ),
-                items: ['single', 'double', 'triple']
-                    .map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.toUpperCase()),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRoomType = value!;
+                    _selectedMealType = value!;
                   });
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _roomNumberController,
+                controller: _requestController,
+                maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: 'Preferred Room Number (Optional)',
+                  labelText: 'Special Requirements',
+                  hintText: 'Enter any dietary requirements or preferences...',
                   border: OutlineInputBorder(),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your requirements';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -117,11 +106,10 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
       final currentUser = context.read<AuthService>().currentUser;
       if (currentUser == null) return;
 
-      await FirebaseFirestore.instance.collection('room_requests').add({
+      await FirebaseFirestore.instance.collection('food_requests').add({
         'userId': currentUser.uid,
-        'hostelType': _selectedHostelType,
-        'roomType': _selectedRoomType,
-        'preferredRoomNumber': _roomNumberController.text,
+        'mealType': _selectedMealType,
+        'requirements': _requestController.text,
         'status': 'pending',
         'timestamp': DateTime.now().toIso8601String(),
       });
@@ -129,10 +117,10 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Room request submitted successfully')),
+        const SnackBar(content: Text('Food request submitted successfully')),
       );
 
-      _roomNumberController.clear();
+      _requestController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -142,7 +130,7 @@ class _RoomAllocationScreenState extends State<RoomAllocationScreen> {
 
   @override
   void dispose() {
-    _roomNumberController.dispose();
+    _requestController.dispose();
     super.dispose();
   }
 } 

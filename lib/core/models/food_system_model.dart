@@ -1,41 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MenuItem {
   final String id;
   final String name;
+  final String description;
   final double price;
-  final String category; // breakfast, lunch, dinner, snacks
+  final String category;
   final bool isAvailable;
-  final String? description;
-  final List<String>? allergens;
 
   MenuItem({
     required this.id,
     required this.name,
+    required this.description,
     required this.price,
     required this.category,
-    this.isAvailable = true,
-    this.description,
-    this.allergens,
+    required this.isAvailable,
   });
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'price': price,
-    'category': category,
-    'isAvailable': isAvailable,
-    'description': description,
-    'allergens': allergens,
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'price': price,
+      'category': category,
+      'isAvailable': isAvailable,
+    };
+  }
 
-  factory MenuItem.fromMap(Map<String, dynamic> map) {
+  static MenuItem fromMap(Map<String, dynamic> map) {
     return MenuItem(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      price: (map['price'] ?? 0.0).toDouble(),
-      category: map['category'] ?? '',
-      isAvailable: map['isAvailable'] ?? true,
+      id: map['id'],
+      name: map['name'],
       description: map['description'],
-      allergens: List<String>.from(map['allergens'] ?? []),
+      price: map['price'].toDouble(),
+      category: map['category'],
+      isAvailable: map['isAvailable'],
     );
   }
 }
@@ -43,47 +43,79 @@ class MenuItem {
 class MealOrder {
   final String id;
   final String userId;
-  final DateTime orderDate;
-  final String mealType; // breakfast, lunch, dinner
-  final List<MenuItem> items;
-  final double totalAmount;
-  final String paymentStatus; // pending, paid
-  final String? transactionId;
+  final String itemId;
+  final int quantity;
+  final double totalPrice;
+  final String status;
+  final DateTime timestamp;
 
   MealOrder({
     required this.id,
     required this.userId,
-    required this.orderDate,
-    required this.mealType,
-    required this.items,
-    required this.totalAmount,
-    this.paymentStatus = 'pending',
-    this.transactionId,
+    required this.itemId,
+    required this.quantity,
+    required this.totalPrice,
+    required this.status,
+    required this.timestamp,
   });
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'userId': userId,
-    'orderDate': orderDate.toIso8601String(),
-    'mealType': mealType,
-    'items': items.map((item) => item.toMap()).toList(),
-    'totalAmount': totalAmount,
-    'paymentStatus': paymentStatus,
-    'transactionId': transactionId,
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'itemId': itemId,
+      'quantity': quantity,
+      'totalPrice': totalPrice,
+      'status': status,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
 
-  factory MealOrder.fromMap(Map<String, dynamic> map) {
+  static MealOrder fromMap(Map<String, dynamic> map) {
     return MealOrder(
-      id: map['id'] ?? '',
-      userId: map['userId'] ?? '',
-      orderDate: DateTime.parse(map['orderDate']),
-      mealType: map['mealType'] ?? '',
-      items: List<MenuItem>.from(
-        (map['items'] ?? []).map((item) => MenuItem.fromMap(item)),
-      ),
-      totalAmount: (map['totalAmount'] ?? 0.0).toDouble(),
-      paymentStatus: map['paymentStatus'] ?? 'pending',
-      transactionId: map['transactionId'],
+      id: map['id'],
+      userId: map['userId'],
+      itemId: map['itemId'],
+      quantity: map['quantity'],
+      totalPrice: map['totalPrice'],
+      status: map['status'],
+      timestamp: DateTime.parse(map['timestamp']),
+    );
+  }
+}
+
+class FoodRequest {
+  final String id;
+  final String userId;
+  final String description;
+  final String status;
+  final DateTime timestamp;
+
+  FoodRequest({
+    required this.id,
+    required this.userId,
+    required this.description,
+    required this.status,
+    required this.timestamp,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'description': description,
+      'status': status,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  static FoodRequest fromMap(Map<String, dynamic> map) {
+    return FoodRequest(
+      id: map['id'],
+      userId: map['userId'],
+      description: map['description'],
+      status: map['status'],
+      timestamp: DateTime.parse(map['timestamp']),
     );
   }
 } 

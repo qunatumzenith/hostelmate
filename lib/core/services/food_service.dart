@@ -26,4 +26,16 @@ class FoodService extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> submitFoodRequest(FoodRequest request) async {
+    try {
+      await _firestore
+          .collection('food_requests')
+          .doc(request.id)
+          .set(request.toMap());
+    } catch (e) {
+      debugPrint('Error submitting food request: $e');
+      rethrow;
+    }
+  }
 } 
