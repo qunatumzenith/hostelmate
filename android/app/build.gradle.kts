@@ -10,8 +10,8 @@ plugins {
 
 android {
     namespace = "com.sasank.hostelmate"
-    compileSdk = 34
-    ndkVersion = "25.1.8937393"
+    compileSdk = 35
+    ndkVersion = "27.2.12479018"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -41,9 +41,9 @@ android {
                 "proguard-rules.pro"
             )
         }
-        getByName("debug") {
-            setDebuggable(true)
-        }
+        // getByName("debug") {
+        //     setDebuggable(true)
+        // }
     }
 
     dexOptions {
