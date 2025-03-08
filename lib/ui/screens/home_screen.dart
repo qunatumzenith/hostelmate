@@ -14,6 +14,8 @@ class HomeScreen extends StatelessWidget {
             Image.asset(
               'assets/hostel_logo.jpg',
               height: 40,
+              width: 40,
+              fit: BoxFit.cover,
             ),
             const SizedBox(width: 8),
             const Text('HostelMate'),
@@ -26,69 +28,111 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: GridView.count(
-        padding: const EdgeInsets.all(16),
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        children: [
-          _buildFeatureCard(
-            context,
-            'Room Allocation',
-            'assets/images/room.jpg',
-            '/room-allocation',
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/hostel_logo.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.1,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.9),
+              BlendMode.lighten,
+            ),
           ),
-          _buildFeatureCard(
-            context,
-            'Medical Assistance',
-            'assets/images/medical.jpg',
-            '/medical-assistance',
-          ),
-          _buildFeatureCard(
-            context,
-            'Food Services',
-            'assets/images/food.jpg',
-            '/food-services',
-          ),
-          _buildFeatureCard(
-            context,
-            'Complaints',
-            'assets/images/complaints.jpg',
-            '/complaints',
-          ),
-        ],
+        ),
+        child: GridView.count(
+          padding: const EdgeInsets.all(16),
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          children: [
+            _buildServiceCard(
+              context,
+              'Room Allocation',
+              'assets/room.jpg',
+              '/room-allocation',
+              'Book and manage your hostel room',
+            ),
+            _buildServiceCard(
+              context,
+              'Medical Assistance',
+              'assets/medical.jpg',
+              '/medical-assistance',
+              'Request medical help',
+            ),
+            _buildServiceCard(
+              context,
+              'Food Services',
+              'assets/food.jpg',
+              '/food-services',
+              'Order meals and view menu',
+            ),
+            _buildServiceCard(
+              context,
+              'Complaints',
+              'assets/complaint.jpg',
+              '/complaints',
+              'Submit and track complaints',
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildFeatureCard(
+  Widget _buildServiceCard(
     BuildContext context,
     String title,
-    String imagePath,
+    String iconPath,
     String route,
+    String description,
   ) {
     return Card(
-      clipBehavior: Clip.antiAlias,
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, route),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-              ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            image: DecorationImage(
+              image: AssetImage(iconPath),
+              fit: BoxFit.cover,
+              opacity: 0.2,
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  iconPath,
+                  height: 64,
+                  width: 64,
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

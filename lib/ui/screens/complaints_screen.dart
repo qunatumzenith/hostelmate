@@ -25,7 +25,7 @@ class _ComplaintsScreenState extends State<ComplaintsScreen> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/complaints.jpg'),
+              image: AssetImage('assets/complaint.jpg'),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
                 Colors.black.withOpacity(0.3),
@@ -38,7 +38,7 @@ class _ComplaintsScreenState extends State<ComplaintsScreen> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/complaints.jpg'),
+            image: AssetImage('assets/complaint.jpg'),
             fit: BoxFit.cover,
             opacity: 0.1,
           ),
@@ -213,7 +213,7 @@ class ComplaintCard extends StatelessWidget {
   }
 
   String _getCategoryImage(String category) {
-    return 'assets/complaints.jpg';
+    return 'assets/complaint.jpg';
   }
 
   IconData _getCategoryIcon(String category) {
