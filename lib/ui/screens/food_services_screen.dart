@@ -254,7 +254,12 @@ class _FoodServicesScreenState extends State<FoodServicesScreen> {
 
     try {
       final currentUser = context.read<AuthService>().currentUser;
-      if (currentUser == null) return;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please sign in to place an order')),
+        );
+        return;
+      }
 
       final selectedItemsList = _selectedItems.entries
           .where((entry) => entry.value)
@@ -263,6 +268,18 @@ class _FoodServicesScreenState extends State<FoodServicesScreen> {
                 'price': _itemPrices[entry.key],
               })
           .toList();
+
+      // Create the order document
+      final orderData = {
+        'userId': currentUser.uid,
+        'userEmail': currentUser.email,
+        'day': _selectedDay,
+        'mealTime': _selectedMealTime,
+        'items': selectedItemsList,
+        'totalAmount': _totalBill,
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      };
 
       // Show receipt dialog
       if (!mounted) return;
@@ -337,20 +354,19 @@ class _FoodServicesScreenState extends State<FoodServicesScreen> {
         },
       );
 
-      await FirebaseFirestore.instance.collection('food_orders').add({
-        'userId': currentUser.uid,
-        'day': _selectedDay,
-        'mealTime': _selectedMealTime,
-        'items': selectedItemsList,
-        'totalAmount': _totalBill,
-        'status': 'pending',
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+      // First check if the collection exists, if not create it
+      final collectionRef = FirebaseFirestore.instance.collection('food_orders');
+      
+      // Add the order
+      await collectionRef.add(orderData);
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order placed successfully')),
+        const SnackBar(
+          content: Text('Order placed successfully'),
+          backgroundColor: Colors.green,
+        ),
       );
 
       setState(() {
@@ -358,9 +374,22 @@ class _FoodServicesScreenState extends State<FoodServicesScreen> {
         _totalBill = 0.0;
       });
     } catch (e) {
+      if (!mounted) return;
+      
+      String errorMessage = 'An error occurred while placing your order';
+      if (e.toString().contains('permission-denied')) {
+        errorMessage = 'You do not have permission to place orders';
+      } else if (e.toString().contains('failed-precondition')) {
+        errorMessage = 'Unable to place order. Please try again later';
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
       );
+      debugPrint('Error placing order: $e');
     }
   }
 } 

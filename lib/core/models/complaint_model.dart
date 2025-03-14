@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 enum ComplaintStatus { pending, inProgress, resolved }
 
 class ComplaintMessage {
@@ -30,7 +32,7 @@ class ComplaintMessage {
       id: map['id'] ?? '',
       senderId: map['senderId'] ?? '',
       message: map['message'] ?? '',
-      timestamp: DateTime.parse(map['timestamp']),
+      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       imageUrl: map['imageUrl'],
     );
   }
@@ -40,6 +42,7 @@ class ComplaintModel {
   final String id;
   final String userId;
   final String title;
+  final String description;
   final String category; // e.g., 'maintenance', 'cleanliness', 'security'
   final ComplaintStatus status;
   final DateTime createdAt;
@@ -54,6 +57,7 @@ class ComplaintModel {
     required this.category,
     required this.status,
     required this.createdAt,
+    required this.description,
     this.roomNumber,
     this.assignedTo,
     this.messages = const [],
@@ -65,6 +69,7 @@ class ComplaintModel {
       'userId': userId,
       'title': title,
       'category': category,
+      'description': description,
       'status': status.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),
       'roomNumber': roomNumber,
@@ -77,14 +82,18 @@ class ComplaintModel {
       id: map['id'] ?? '',
       userId: map['userId'] ?? '',
       title: map['title'] ?? '',
+      description: map['description'] ?? '',
       category: map['category'] ?? '',
       status: ComplaintStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == map['status'],
+        (e) => e.toString().split('.').last == (map['status'] ?? 'pending'),
         orElse: () => ComplaintStatus.pending,
       ),
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       roomNumber: map['roomNumber'],
       assignedTo: map['assignedTo'],
+      messages: (map['messages'] as List<dynamic>?)
+          ?.map((m) => ComplaintMessage.fromMap(m as Map<String, dynamic>))
+          .toList() ?? [],
     );
   }
 } 
